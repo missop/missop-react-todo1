@@ -1,111 +1,58 @@
-import React, {Component, Fragment} from 'react'
-import TodoItem from './TodoItem'
-import PropTypes from 'prop-types'
-import './App.css'
-import axios from 'axios'
+import React, {Component} from 'react'
+import 'antd/dist/antd.css'
+import {Input, Button, List} from 'antd'
+import store from './store'
 
 class TodoList extends Component {
-
   constructor(props) {
     super(props);
-    this.state = {
-      inputVal: '',
-      list: ['study English', 'learn React']
-    }
+    this.state = store.getState();
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleStoreChange = this.handleStoreChange.bind(this);
     this.handleButtonClick = this.handleButtonClick.bind(this);
-    this.handleItemDelete = this.handleItemDelete.bind(this);
-    this.myRef = React.createRef();
-  }
-
-  componentDidMount() {
-    axios.get('/api.todolist')
-        .then((res) => {
-          console.log(res);
-        })
-        .catch((e) => {
-          console.log(e);
-        })
+    store.subscribe(this.handleStoreChange);
   }
 
   render() {
-    console.log('render');
     return (
-        /*Fragment类似一个插槽，并不会渲染为一个标签*/
-        <Fragment>
+        <div style={{marginTop: '10px', marginLeft: '10px'}}>
           <div>
-            <label htmlFor="insertArea">输入内容</label>
-            <input id="insertArea"
-                   type="text"
-                   className="input"
-                   value={this.state.inputVal}
+            <Input placeholder="todo info"
+                   style={{width: '300px', marginRight: '10px'}}
+                   value={this.state.inputValue}
                    onChange={this.handleInputChange}/>
-            <button onClick={this.handleButtonClick}>提交</button>
+            <Button type="primary"
+                    onClick={this.handleButtonClick}>提交</Button>
+            <List
+                style={{marginTop: '10px', width: '300px'}}
+                bordered
+                dataSource={this.state.list}
+                renderItem={item => (<List.Item>{item}</List.Item>)}
+            />
           </div>
-          <ul ref={this.myRef}>
-            {this.getTodoItem()}
-          </ul>
-        </Fragment>
+        </div>
     )
   }
 
-  getTodoItem() {
-    return this.state.list.map((item, index) => {
-      return (
-          <TodoItem
-              key={index}
-              content={item}
-              index={index}
-              handleItemDelete={this.handleItemDelete}
-          />
-      )
-    })
+  handleInputChange(e) {
+    const action = {
+      type: 'change_input_value',
+      value: e.target.value
+    };
+    store.dispatch(action);
   }
 
-  handleInputChange(e) {
-    const value = e.target.value
-    this.setState(() => ({
-      inputVal: value
-    }))
-    /*错误 const value = e.target.value
-    this.setState(() => ({
-        inputVal: e.target.value
-    }))*/
-    /*不好 this.setState({
-        inputVal: e.target.value
-    })*/
+  handleStoreChange() {
+    this.setState(store.getState());
   }
 
   handleButtonClick() {
-    this.setState((prevState) => ({
-      list: [...prevState.list, this.state.inputVal],
-      inputVal: ''
-    }))
-    /* this.setState({
-         list: [...this.state.list, this.state.inputVal],
-         inputVal: ''
-     })*/
+    const action = {
+      type: 'add_todo_item'
+    };
+    store.dispatch(action);
   }
 
-  handleItemDelete(index) {
-    this.setState((prevState) => {
-      const list = [...prevState.list];
-      list.splice(index, 1);
-      return {list}
-    }, () => {
-      console.log(this.myRef.current.children.length);
-    })
-  }
 }
-
-TodoItem.propTypes = {
-  content: PropTypes.string,
-  test: PropTypes.string.isRequired
-}
-
-TodoItem.defaultProps = {
-  test: 'Hello pop'
-}
-
 
 export default TodoList
