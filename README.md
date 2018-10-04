@@ -34,3 +34,5 @@
     * render
     * componentDidUpdate
 * componentWillUnmount
+
+## redux
